@@ -1,0 +1,28 @@
+name: ci
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+    style:
+      name: Style
+      runs-on: ubuntu-latest
+    
+      steps:
+        - name: check ouut code
+          uses: actions/checkout@v4
+
+        - name: set up go
+          uses: actions/setup-go@v5
+          with:
+            go-version: '1.23.0'
+
+        - name: formatting check
+          run: test -z $(go fmt ./...)
+
+        - name: install staticcheck linter
+          run: go install honnef.co/go/tools/cmd/staticcheck@latest
+        
+        - name: linter check
+          run: staticcheck ./...
