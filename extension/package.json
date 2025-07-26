@@ -12,12 +12,25 @@
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
-    "commands": [
-      {
-        "command": "revision.helloWorld",
-        "title": "Hello World"
-      }
-    ]
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "revisionSidebar",
+          "title": "Revision",
+          "icon": "media/chat-left.svg"
+        }
+      ]
+    },
+    "views": {
+      "revisionSidebar": [
+        {
+          "type": "webview",
+          "id": "commentsView",
+          "name": "Comments",
+          "icon": "media/chat-left.svg"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
