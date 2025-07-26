@@ -86,7 +86,7 @@ func (cfg *apiConfig) handleGitHubCallback(w http.ResponseWriter, r *http.Reques
 		Avatar:   ghUser.AvatarURL,
 	})
 	if err != nil {
-		http.Error(w, "Failed to create user in database: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Failed to create user in database", http.StatusInternalServerError)
 		return
 	}
 }
