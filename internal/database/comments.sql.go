@@ -8,6 +8,8 @@ package database
 import (
 	"context"
 	"database/sql"
+
+	"github.com/google/uuid"
 )
 
 const createComment = `-- name: CreateComment :one
@@ -45,6 +47,29 @@ func (q *Queries) CreateComment(ctx context.Context, arg CreateCommentParams) (C
 		arg.Body,
 		arg.Resolved,
 	)
+	var i Comment
+	err := row.Scan(
+		&i.ID,
+		&i.FilePath,
+		&i.Repo,
+		&i.CommitHash,
+		&i.LineStart,
+		&i.LineEnd,
+		&i.Author,
+		&i.Body,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Resolved,
+	)
+	return i, err
+}
+
+const getComment = `-- name: GetComment :one
+SELECT id, file_path, repo, commit_hash, line_start, line_end, author, body, created_at, updated_at, resolved FROM comments WHERE id=$1
+`
+
+func (q *Queries) GetComment(ctx context.Context, id uuid.UUID) (Comment, error) {
+	row := q.db.QueryRowContext(ctx, getComment, id)
 	var i Comment
 	err := row.Scan(
 		&i.ID,

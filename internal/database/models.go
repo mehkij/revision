@@ -23,3 +23,12 @@ type Comment struct {
 	UpdatedAt  sql.NullTime
 	Resolved   sql.NullBool
 }
+
+type User struct {
+	ID        uuid.UUID
+	GithubID  int64
+	Username  string
+	Avatar    string
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
