@@ -13,6 +13,12 @@ import (
 
 type apiConfig struct {
 	queries *database.Queries
+	github  *githubClient
+}
+
+type githubClient struct {
+	clientID     string
+	clientSecret string
 }
 
 func main() {
@@ -27,8 +33,17 @@ func main() {
 
 	dbQueries := database.New(db)
 
+	clientID := os.Getenv("GITHUB_CLIENT_ID")
+	clientSecret := os.Getenv("GITHUB_CLIENT_SECRET")
+
+	githubClient := &githubClient{
+		clientID:     clientID,
+		clientSecret: clientSecret,
+	}
+
 	apiCfg := &apiConfig{
 		queries: dbQueries,
+		github:  githubClient,
 	}
 
 	mux := http.NewServeMux()
@@ -36,6 +51,8 @@ func main() {
 	// API
 	mux.HandleFunc("POST /api/v1/comments", apiCfg.createCommentHandler)
 	mux.HandleFunc("GET /api/v1/comments", apiCfg.getCommentHandler)
+
+	mux.HandleFunc("GET /auth/github/callback", apiCfg.handleGitHubCallback)
 
 	server := http.Server{
 		Addr:    ":8080",
