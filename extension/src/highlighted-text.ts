@@ -20,6 +20,17 @@ export function highlightedFunc() {
         return;
     }
 
+    const line_bck_color = 'rgba(98,27,99, 0.92)'
+    const outlineDecoration = vscode.window.createTextEditorDecorationType({
+        borderColor: line_bck_color,
+        borderStyle: 'solid',
+        borderWidth: '1px',
+        borderRadius: '0px',
+        backgroundColor: line_bck_color,
+        overviewRulerLane: vscode.OverviewRulerLane.Center
+    });
+    let activeRanges: vscode.Range[] = [];
+
     const selection = editor.selection;
     if (selection && !selection.isEmpty) {
         const selectionRange = new vscode.Range(selection.start.line, selection.start.character, selection.end.line, selection.end.character);
@@ -31,6 +42,10 @@ export function highlightedFunc() {
             endCharPos: selectionRange.end.character,
             text: highlighted
         };
+
+        activeRanges.push(selectionRange);
+        editor.setDecorations(outlineDecoration, activeRanges);
+
 
         console.log(highlightedText);
         axios.post(url + '/api/v1/comments',
