@@ -7,7 +7,7 @@ ADD COLUMN char_end INTEGER NOT NULl;
 
 -- +goose Down
 ALTER TABLE comments
-DROP COLUMN start_char;
+DROP COLUMN char_start;
 
 ALTER TABLE comments
-DROP COLUMN end_char;
+DROP COLUMN char_end;
