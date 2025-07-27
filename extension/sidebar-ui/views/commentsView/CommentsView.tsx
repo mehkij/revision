@@ -26,10 +26,9 @@ const MOCK_COMMENTS: Comment[] = [
   },
 ];
 
-function App() {
+function CommentsView() {
   return (
     <div className="flex-col">
-      <h1>Comments</h1>
       {MOCK_COMMENTS.map((comment) => (
         // Comment card
         <div
@@ -58,4 +57,4 @@ function App() {
   );
 }
 
-export default App;
+export default CommentsView;

@@ -12,12 +12,13 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        main: resolve(__dirname, "index.html"),
+        auth: resolve(__dirname, "views/authView/index.html"),
+        comments: resolve(__dirname, "views/commentsView/index.html"),
       },
       output: {
-        entryFileNames: `assets/index.js`,
-        chunkFileNames: `assets/[name].js`,
-        assetFileNames: `assets/[name].[ext]`,
+        entryFileNames: `assets/[name]/index.js`,
+        chunkFileNames: `assets/[name]/[name].js`,
+        assetFileNames: `assets/[name]/[name].[ext]`,
       },
     },
   },

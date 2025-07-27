@@ -28,6 +28,12 @@
           "id": "commentsView",
           "name": "Comments",
           "icon": "media/chat-left.svg"
+        },
+        {
+          "type": "webview",
+          "id": "authView",
+          "name": "Authenticate",
+          "icon": "media/chat-left.svg"
         }
       ]
     }

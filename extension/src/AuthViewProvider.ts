@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { getNonce } from "./getNonce";
 
-export class CommentsViewProvider implements vscode.WebviewViewProvider {
+export class AuthViewProvider implements vscode.WebviewViewProvider {
   private _view?: vscode.WebviewView;
 
   constructor(private readonly context: vscode.ExtensionContext) {}
@@ -16,12 +16,12 @@ export class CommentsViewProvider implements vscode.WebviewViewProvider {
     webviewView.webview.html = this.getHtml(webviewView.webview);
 
     // Listen to messages from the webview (e.g., to add a comment)
-    webviewView.webview.onDidReceiveMessage((message) => {
-      if (message.command === "addComment") {
-        console.log("Add comment:", message.data);
-        // Send to Go backend via fetch or WebSocket
-      }
-    });
+    // webviewView.webview.onDidReceiveMessage((message) => {
+    //   if (message.command === "addComment") {
+    //     console.log("Add comment:", message.data);
+    //     // Send to Go backend via fetch or WebSocket
+    //   }
+    // });
   }
 
   private getHtml(webview: vscode.Webview): string {
@@ -30,8 +30,11 @@ export class CommentsViewProvider implements vscode.WebviewViewProvider {
         vscode.Uri.joinPath(this.context.extensionUri, "media", file)
       );
 
-    const scriptURI = webviewURI("assets/index.js");
-    const stylesURI = webviewURI("assets/main.css");
+    const scriptURI = webviewURI("assets/auth/index.js");
+    const stylesURI = webviewURI("assets/index/index.css");
+    const githubLogoURI = webview.asWebviewUri(
+      vscode.Uri.joinPath(this.context.extensionUri, "media", "github-mark.svg")
+    );
 
     const nonce = getNonce();
 
@@ -49,6 +52,9 @@ export class CommentsViewProvider implements vscode.WebviewViewProvider {
       </head>
       <body>
         <div id="root"></div>
+        <script nonce=${nonce}>
+          window.GITHUB_LOGO_URI = "${githubLogoURI}"
+        </script>
         <script type="module" src="${scriptURI}" nonce="${nonce}"></script>
       </body>
       </html>`;
