@@ -31,7 +31,7 @@ func (cfg *apiConfig) createCommentHandler(w http.ResponseWriter, r *http.Reques
 	params := parameters{}
 	err := decoder.Decode(&params)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "coudln't decode response body", err)
+		respondWithError(w, http.StatusInternalServerError, "coudln't decode response body")
 		return
 	}
 
@@ -43,7 +43,7 @@ func (cfg *apiConfig) createCommentHandler(w http.ResponseWriter, r *http.Reques
 		Body:      params.Text,
 	})
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "coudln't decode create comment", err)
+		respondWithError(w, http.StatusInternalServerError, "coudln't decode create comment")
 		return
 	}
 

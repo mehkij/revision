@@ -112,13 +112,13 @@ func (cfg *apiConfig) handleGitHubCallback(w http.ResponseWriter, r *http.Reques
 
 	token, err := auth.MakeJWT(user.ID, cfg.jwtSecret, time.Duration(time.Hour))
 	if err != nil {
-		respondWithError(w, 400, "Error creating refresh token", err)
+		respondWithError(w, 400, "Error creating refresh token")
 		return
 	}
 
 	refreshToken, err := auth.MakeRefreshToken()
 	if err != nil {
-		respondWithError(w, 400, "Error creating refresh token", err)
+		respondWithError(w, 400, "Error creating refresh token")
 		return
 	}
 
@@ -131,7 +131,7 @@ func (cfg *apiConfig) handleGitHubCallback(w http.ResponseWriter, r *http.Reques
 		},
 	})
 	if err != nil {
-		respondWithError(w, 400, "Error creating refresh token in database", err)
+		respondWithError(w, 400, "Error creating refresh token in database")
 		return
 	}
 
