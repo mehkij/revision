@@ -15,13 +15,17 @@ export class AuthViewProvider implements vscode.WebviewViewProvider {
 
     webviewView.webview.html = this.getHtml(webviewView.webview);
 
-    // Listen to messages from the webview (e.g., to add a comment)
-    // webviewView.webview.onDidReceiveMessage((message) => {
-    //   if (message.command === "addComment") {
-    //     console.log("Add comment:", message.data);
-    //     // Send to Go backend via fetch or WebSocket
-    //   }
-    // });
+    const clientID = "Ov23liCMiYF5035lKJEQ";
+    const redirectUri = "vscode://revision/auth/callback"; // or your deployed URL
+    const authURL = `https://github.com/login/oauth/authorize?client_id=${clientID}&redirect_uri=${encodeURIComponent(
+      redirectUri
+    )}&scope=repo`;
+
+    webviewView.webview.onDidReceiveMessage(async (message) => {
+      if (message.command === "startOAuth") {
+        vscode.env.openExternal(vscode.Uri.parse(authURL));
+      }
+    });
   }
 
   private getHtml(webview: vscode.Webview): string {

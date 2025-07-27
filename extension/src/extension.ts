@@ -3,6 +3,7 @@
 import * as vscode from "vscode";
 import { CommentsViewProvider } from "./CommentsViewProvider";
 import { AuthViewProvider } from "./AuthViewProvider";
+import { URIHandler } from "./URIHandler";
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -12,7 +13,8 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider("commentsView", commentsProvider),
-    vscode.window.registerWebviewViewProvider("authView", authProvider)
+    vscode.window.registerWebviewViewProvider("authView", authProvider),
+    vscode.window.registerUriHandler(new URIHandler())
   );
 }
 
