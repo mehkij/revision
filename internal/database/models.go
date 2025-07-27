@@ -23,6 +23,7 @@ type Comment struct {
 	CreatedAt  sql.NullTime
 	UpdatedAt  sql.NullTime
 	Resolved   sql.NullBool
+	UserID     uuid.UUID
 }
 
 type RefreshToken struct {

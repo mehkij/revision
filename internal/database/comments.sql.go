@@ -24,7 +24,7 @@ VALUES (
     $6,
     $7
 )
-RETURNING id, file_path, repo, commit_hash, line_start, line_end, author, body, created_at, updated_at, resolved
+RETURNING id, file_path, repo, commit_hash, line_start, line_end, author, body, created_at, updated_at, resolved, user_id
 `
 
 type CreateCommentParams struct {
@@ -60,12 +60,13 @@ func (q *Queries) CreateComment(ctx context.Context, arg CreateCommentParams) (C
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Resolved,
+		&i.UserID,
 	)
 	return i, err
 }
 
 const getComment = `-- name: GetComment :one
-SELECT id, file_path, repo, commit_hash, line_start, line_end, author, body, created_at, updated_at, resolved FROM comments WHERE id=$1
+SELECT id, file_path, repo, commit_hash, line_start, line_end, author, body, created_at, updated_at, resolved, user_id FROM comments WHERE id=$1
 `
 
 func (q *Queries) GetComment(ctx context.Context, id uuid.UUID) (Comment, error) {
@@ -83,6 +84,47 @@ func (q *Queries) GetComment(ctx context.Context, id uuid.UUID) (Comment, error)
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Resolved,
+		&i.UserID,
 	)
 	return i, err
+}
+
+const getCommentsByUser = `-- name: GetCommentsByUser :many
+SELECT id, file_path, repo, commit_hash, line_start, line_end, author, body, created_at, updated_at, resolved, user_id FROM comments WHERE user_id=$1
+`
+
+func (q *Queries) GetCommentsByUser(ctx context.Context, userID uuid.UUID) ([]Comment, error) {
+	rows, err := q.db.QueryContext(ctx, getCommentsByUser, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Comment
+	for rows.Next() {
+		var i Comment
+		if err := rows.Scan(
+			&i.ID,
+			&i.FilePath,
+			&i.Repo,
+			&i.CommitHash,
+			&i.LineStart,
+			&i.LineEnd,
+			&i.Author,
+			&i.Body,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Resolved,
+			&i.UserID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

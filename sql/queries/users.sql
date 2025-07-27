@@ -9,5 +9,5 @@ VALUES (
 )
 RETURNING *;
 
--- name: GetUser :one
+-- name: GetUserByGitHubID :one
 SELECT * FROM users WHERE (github_id=$1);

@@ -49,12 +49,12 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
-const getUser = `-- name: GetUser :one
+const getUserByGitHubID = `-- name: GetUserByGitHubID :one
 SELECT id, github_id, username, avatar, created_at, updated_at, github_token FROM users WHERE (github_id=$1)
 `
 
-func (q *Queries) GetUser(ctx context.Context, githubID int64) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUser, githubID)
+func (q *Queries) GetUserByGitHubID(ctx context.Context, githubID int64) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByGitHubID, githubID)
 	var i User
 	err := row.Scan(
 		&i.ID,
