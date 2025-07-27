@@ -1,4 +1,5 @@
 .env
 aws-keys/
-awscliv2.zip/
-aws/
+testing
+awscliv2.zip
+aws
