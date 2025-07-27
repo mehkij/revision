@@ -1,10 +1,11 @@
 -- name: CreateUser :one
-INSERT INTO users (id, github_id, username, avatar)
+INSERT INTO users (id, github_id, username, avatar, github_token)
 VALUES (
     gen_random_uuid(),
     $1,
     $2,
-    $3
+    $3,
+    $4
 )
 RETURNING *;
 

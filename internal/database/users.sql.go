@@ -7,27 +7,35 @@ package database
 
 import (
 	"context"
+	"database/sql"
 )
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (id, github_id, username, avatar)
+INSERT INTO users (id, github_id, username, avatar, github_token)
 VALUES (
     gen_random_uuid(),
     $1,
     $2,
-    $3
+    $3,
+    $4
 )
-RETURNING id, github_id, username, avatar, created_at, updated_at
+RETURNING id, github_id, username, avatar, created_at, updated_at, github_token
 `
 
 type CreateUserParams struct {
-	GithubID int64
-	Username string
-	Avatar   string
+	GithubID    int64
+	Username    string
+	Avatar      string
+	GithubToken sql.NullString
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, createUser, arg.GithubID, arg.Username, arg.Avatar)
+	row := q.db.QueryRowContext(ctx, createUser,
+		arg.GithubID,
+		arg.Username,
+		arg.Avatar,
+		arg.GithubToken,
+	)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -36,12 +44,13 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Avatar,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.GithubToken,
 	)
 	return i, err
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, github_id, username, avatar, created_at, updated_at FROM users WHERE (github_id=$1)
+SELECT id, github_id, username, avatar, created_at, updated_at, github_token FROM users WHERE (github_id=$1)
 `
 
 func (q *Queries) GetUser(ctx context.Context, githubID int64) (User, error) {
@@ -54,6 +63,7 @@ func (q *Queries) GetUser(ctx context.Context, githubID int64) (User, error) {
 		&i.Avatar,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.GithubToken,
 	)
 	return i, err
 }
