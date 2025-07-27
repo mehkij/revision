@@ -5,12 +5,14 @@ import { CommentsViewProvider } from "./CommentsViewProvider";
 import { AuthViewProvider } from "./AuthViewProvider";
 import { URIHandler } from "./URIHandler";
 
+let authProviderInstance: AuthViewProvider | undefined;
+
 import { highlightedFunc } from "./highlighted-text";
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
   const commentsProvider = new CommentsViewProvider(context);
-  const authProviderInstance = new AuthViewProvider(context);
+  authProviderInstance = new AuthViewProvider(context);
 
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider("commentsView", commentsProvider),
@@ -27,6 +29,10 @@ export function activate(context: vscode.ExtensionContext) {
   const disposable = vscode.commands.registerCommand(command, commandHandler);
 
   context.subscriptions.push(disposable);
+}
+
+export function getAuthProvider(): AuthViewProvider | undefined {
+  return authProviderInstance;
 }
 
 // This method is called when your extension is deactivated
