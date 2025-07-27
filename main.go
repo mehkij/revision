@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
@@ -49,14 +50,18 @@ func main() {
 	mux := http.NewServeMux()
 
 	// API
-	mux.HandleFunc("POST /api/v1/comments", apiCfg.createCommentHandler)
-	mux.HandleFunc("GET /api/v1/comments", apiCfg.getCommentHandler)
+	mux.HandleFunc("POST /api/v1/comments", corsMiddleware(apiCfg.createCommentHandler))
+	mux.HandleFunc("GET /api/v1/comments", corsMiddleware(apiCfg.getCommentHandler))
 
 	mux.HandleFunc("GET /auth/github/callback", apiCfg.handleGitHubCallback)
 
-	server := http.Server{
-		Addr:    "0.0.0.0:8080",
-		Handler: mux,
+	server := &http.Server{
+		Addr:              ":8080",
+		Handler:           mux,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      10 * time.Second,
+		IdleTimeout:       60 * time.Second,
+		ReadHeaderTimeout: 5 * time.Second,
 	}
 
 	log.Printf("server starting on address: %s\n", server.Addr)
