@@ -1,5 +1,5 @@
 -- name: CreateComment :one
-INSERT INTO comments (id, file_path, commit_hash, line_start, line_end, author, body, resolved)
+INSERT INTO comments (id, file_path, commit_hash, line_start, line_end, char_start, char_end, author, body, resolved)
 VALUES (
     gen_random_uuid(),
     $1,
@@ -8,9 +8,14 @@ VALUES (
     $4,
     $5,
     $6,
-    $7
+    $7,
+    $8,
+    $9
 )
 RETURNING *;
 
 -- name: GetComment :one
 SELECT * FROM comments WHERE id=$1;
+
+-- name: GetCommentsByUser :many
+SELECT * FROM comments WHERE user_id=$1;

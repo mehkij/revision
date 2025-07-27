@@ -6,6 +6,7 @@ package database
 
 import (
 	"database/sql"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -22,4 +23,26 @@ type Comment struct {
 	CreatedAt  sql.NullTime
 	UpdatedAt  sql.NullTime
 	Resolved   sql.NullBool
+	CharStart  int32
+	CharEnd    int32
+	UserID     uuid.UUID
+}
+
+type RefreshToken struct {
+	Token     string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	ExpiresAt time.Time
+	RevokedAt sql.NullTime
+	UserID    uuid.NullUUID
+}
+
+type User struct {
+	ID          uuid.UUID
+	GithubID    int64
+	Username    string
+	Avatar      string
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+	GithubToken sql.NullString
 }
