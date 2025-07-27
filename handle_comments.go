@@ -1,9 +1,12 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
+	"github.com/mehkij/revision/internal/auth"
 	"github.com/mehkij/revision/internal/database"
 )
 
@@ -55,5 +58,40 @@ func (cfg *apiConfig) createCommentHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func (cfg *apiConfig) getCommentHandler(w http.ResponseWriter, r *http.Request) {
+	type parameters struct {
+		Repo string `json:"repo"`
+	}
 
+	decoder := json.NewDecoder(r.Body)
+	params := parameters{}
+	err := decoder.Decode(&params)
+	if err != nil {
+		respondWithError(w, 500, fmt.Sprintf("Error decoding params: %s", err))
+		return
+	}
+
+	// Authorize user
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		respondWithError(w, 500, fmt.Sprintf("Error getting token: %s", err))
+		return
+	}
+
+	_, err = auth.ValidateJWT(token, cfg.jwtSecret)
+	if err != nil {
+		respondWithError(w, 401, "Invalid token")
+		return
+	}
+
+	comments, err := cfg.queries.GetCommentsByRepo(context.Background(), params.Repo)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("Error getting comments: %s", err))
+		return
+	}
+	if len(comments) == 0 {
+		respondWithJSON(w, http.StatusOK, []Comment{})
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, comments)
 }
