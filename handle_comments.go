@@ -58,15 +58,9 @@ func (cfg *apiConfig) createCommentHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func (cfg *apiConfig) getCommentHandler(w http.ResponseWriter, r *http.Request) {
-	type parameters struct {
-		Repo string `json:"repo"`
-	}
-
-	decoder := json.NewDecoder(r.Body)
-	params := parameters{}
-	err := decoder.Decode(&params)
-	if err != nil {
-		respondWithError(w, 500, fmt.Sprintf("Error decoding params: %s", err))
+	repo := r.URL.Query().Get("repo")
+	if repo == "" {
+		respondWithError(w, 400, "Missing repo parameter")
 		return
 	}
 
@@ -83,7 +77,7 @@ func (cfg *apiConfig) getCommentHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	comments, err := cfg.queries.GetCommentsByRepo(context.Background(), params.Repo)
+	comments, err := cfg.queries.GetCommentsByRepo(context.Background(), repo)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("Error getting comments: %s", err))
 		return
