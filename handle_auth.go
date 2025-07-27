@@ -106,6 +106,7 @@ func (cfg *apiConfig) handleGitHubCallback(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	// Create refresh token for user
 	user, err := cfg.queries.GetUserByGitHubID(context.Background(), ghUser.GithubID)
 	if err != nil {
 		respondWithError(w, 400, "Error creating token")
