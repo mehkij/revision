@@ -19,3 +19,6 @@ SELECT * FROM comments WHERE id=$1;
 
 -- name: GetCommentsByUser :many
 SELECT * FROM comments WHERE user_id=$1;
+
+-- name: GetCommentsByRepo :many
+SELECT * FROM comments WHERE (repo=$1);

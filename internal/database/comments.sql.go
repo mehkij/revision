@@ -99,6 +99,48 @@ func (q *Queries) GetComment(ctx context.Context, id uuid.UUID) (Comment, error)
 	return i, err
 }
 
+const getCommentsByRepo = `-- name: GetCommentsByRepo :many
+SELECT id, file_path, repo, commit_hash, line_start, line_end, author, body, created_at, updated_at, resolved, char_start, char_end, user_id FROM comments WHERE (repo=$1)
+`
+
+func (q *Queries) GetCommentsByRepo(ctx context.Context, repo string) ([]Comment, error) {
+	rows, err := q.db.QueryContext(ctx, getCommentsByRepo, repo)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Comment
+	for rows.Next() {
+		var i Comment
+		if err := rows.Scan(
+			&i.ID,
+			&i.FilePath,
+			&i.Repo,
+			&i.CommitHash,
+			&i.LineStart,
+			&i.LineEnd,
+			&i.Author,
+			&i.Body,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Resolved,
+			&i.CharStart,
+			&i.CharEnd,
+			&i.UserID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getCommentsByUser = `-- name: GetCommentsByUser :many
 SELECT id, file_path, repo, commit_hash, line_start, line_end, author, body, created_at, updated_at, resolved, char_start, char_end, user_id FROM comments WHERE user_id=$1
 `
