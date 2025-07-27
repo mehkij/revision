@@ -8,10 +8,12 @@ package database
 import (
 	"context"
 	"database/sql"
+
+	"github.com/google/uuid"
 )
 
 const createComment = `-- name: CreateComment :one
-INSERT INTO comments (id, file_path, commit_hash, line_start, line_end, author, body, resolved)
+INSERT INTO comments (id, file_path, commit_hash, line_start, line_end, char_start, char_end, author, body, resolved)
 VALUES (
     gen_random_uuid(),
     $1,
@@ -20,9 +22,11 @@ VALUES (
     $4,
     $5,
     $6,
-    $7
+    $7,
+    $8,
+    $9
 )
-RETURNING id, file_path, repo, commit_hash, line_start, line_end, author, body, created_at, updated_at, resolved
+RETURNING id, file_path, repo, commit_hash, line_start, line_end, author, body, created_at, updated_at, resolved, char_start, char_end, user_id
 `
 
 type CreateCommentParams struct {
@@ -30,6 +34,8 @@ type CreateCommentParams struct {
 	CommitHash string
 	LineStart  int32
 	LineEnd    int32
+	CharStart  int32
+	CharEnd    int32
 	Author     string
 	Body       string
 	Resolved   sql.NullBool
@@ -41,6 +47,8 @@ func (q *Queries) CreateComment(ctx context.Context, arg CreateCommentParams) (C
 		arg.CommitHash,
 		arg.LineStart,
 		arg.LineEnd,
+		arg.CharStart,
+		arg.CharEnd,
 		arg.Author,
 		arg.Body,
 		arg.Resolved,
@@ -58,6 +66,77 @@ func (q *Queries) CreateComment(ctx context.Context, arg CreateCommentParams) (C
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Resolved,
+		&i.CharStart,
+		&i.CharEnd,
+		&i.UserID,
 	)
 	return i, err
+}
+
+const getComment = `-- name: GetComment :one
+SELECT id, file_path, repo, commit_hash, line_start, line_end, author, body, created_at, updated_at, resolved, char_start, char_end, user_id FROM comments WHERE id=$1
+`
+
+func (q *Queries) GetComment(ctx context.Context, id uuid.UUID) (Comment, error) {
+	row := q.db.QueryRowContext(ctx, getComment, id)
+	var i Comment
+	err := row.Scan(
+		&i.ID,
+		&i.FilePath,
+		&i.Repo,
+		&i.CommitHash,
+		&i.LineStart,
+		&i.LineEnd,
+		&i.Author,
+		&i.Body,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Resolved,
+		&i.CharStart,
+		&i.CharEnd,
+		&i.UserID,
+	)
+	return i, err
+}
+
+const getCommentsByUser = `-- name: GetCommentsByUser :many
+SELECT id, file_path, repo, commit_hash, line_start, line_end, author, body, created_at, updated_at, resolved, char_start, char_end, user_id FROM comments WHERE user_id=$1
+`
+
+func (q *Queries) GetCommentsByUser(ctx context.Context, userID uuid.UUID) ([]Comment, error) {
+	rows, err := q.db.QueryContext(ctx, getCommentsByUser, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Comment
+	for rows.Next() {
+		var i Comment
+		if err := rows.Scan(
+			&i.ID,
+			&i.FilePath,
+			&i.Repo,
+			&i.CommitHash,
+			&i.LineStart,
+			&i.LineEnd,
+			&i.Author,
+			&i.Body,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Resolved,
+			&i.CharStart,
+			&i.CharEnd,
+			&i.UserID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
