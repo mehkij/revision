@@ -55,11 +55,11 @@ func main() {
 	mux.HandleFunc("GET /auth/github/callback", apiCfg.handleGitHubCallback)
 
 	server := http.Server{
-		Addr:    ":8080",
+		Addr:    "0.0.0.0:8080",
 		Handler: mux,
 	}
 
-	log.Printf("server starting on port: %s\n", server.Addr)
+	log.Printf("server starting on address: %s\n", server.Addr)
 	err = server.ListenAndServe()
 	if err != nil {
 		log.Fatalf("error starting server: %s", err)
