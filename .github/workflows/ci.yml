@@ -10,19 +10,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: check out code
-        uses: actions/checkout@v4
+        - name: check out code
+          uses: actions/checkout@v4
 
-      - name: set up go
-        uses: actions/setup-go@v5
-        with:
-          go-version: "1.23.0"
+        - name: set up go
+          uses: actions/setup-go@v5
+          with:
+            go-version: "1.23.0"
 
-      - name: install gosec
-        run: go install github.com/securego/gosec/v2/cmd/gosec@latest
+        - name: install gosec
+          run: go install github.com/securego/gosec/v2/cmd/gosec@latest
 
-      - name: security check
-        run: gosec ./...
+        - name: security check
+          run: gosec -exclude-generated ./..
+
 
   style:
     name: Style
@@ -48,3 +49,4 @@ jobs:
 
       - name: linter check
         run: staticcheck ./...
+

@@ -24,7 +24,9 @@ type githubClient struct {
 }
 
 func main() {
-	godotenv.Load()
+	if err := godotenv.Load(); err != nil {
+		log.Printf("could not load environment variables: %v", err)
+	}
 	dbURL := os.Getenv("DB_URL")
 
 	db, err := sql.Open("postgres", dbURL)
