@@ -5,46 +5,46 @@ on:
     branches: [main]
 
 jobs:
-    tests:
-      name: Tests
-      runs-on: ubuntu-latest
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
 
     steps:
-        - name: check out code
-          uses: actions/checkout@v4
+      - name: check out code
+        uses: actions/checkout@v4
 
-        - name: set up go
-          uses: actions/setup-go@v5
-          with:
-            go-version: '1.23.0'
+      - name: set up go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.0"
 
-        - name: install gosec
-          run: go install github.com/securego/gosec/v2/cmd/gosec@latest
+      - name: install gosec
+        run: go install github.com/securego/gosec/v2/cmd/gosec@latest
 
-        - name: security check
-          run: gosec ./...
+      - name: security check
+        run: gosec ./...
 
-    style:
-      name: Style
-      runs-on: ubuntu-latest
-    
-      steps:
-        - name: check out code
-          uses: actions/checkout@v4
+  style:
+    name: Style
+    runs-on: ubuntu-latest
 
-        - name: set up go
-          uses: actions/setup-go@v5
-          with:
-            go-version: '1.24.4'
+    steps:
+      - name: check out code
+        uses: actions/checkout@v4
 
-        - name: format code
-          run: go fmt ./...
+      - name: set up go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24.4"
 
-        - name: formatting check
-          run: test -z $(go fmt ./...)
+      - name: format code
+        run: go fmt ./...
 
-        - name: install staticcheck linter
-          run: go install honnef.co/go/tools/cmd/staticcheck@latest
-        
-        - name: linter check
-          run: staticcheck ./...
+      - name: formatting check
+        run: test -z $(go fmt ./...)
+
+      - name: install staticcheck linter
+        run: go install honnef.co/go/tools/cmd/staticcheck@latest
+
+      - name: linter check
+        run: staticcheck ./...
