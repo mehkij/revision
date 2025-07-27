@@ -21,11 +21,8 @@ type GithubUser struct {
 }
 
 type User struct {
-	ID           uuid.UUID `json:"id"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
-	Token        string    `json:"token"`
-	RefreshToken string    `json:"refresh_token"`
+	ID          uuid.UUID `json:"id"`
+	AccessToken string    `json:"token"`
 }
 
 func (cfg *apiConfig) handleGitHubCallback(w http.ResponseWriter, r *http.Request) {
@@ -92,7 +89,7 @@ func (cfg *apiConfig) handleGitHubCallback(w http.ResponseWriter, r *http.Reques
 		AvatarURL: userData["avatar_url"].(string),
 	}
 
-	_, err = cfg.queries.CreateUser(context.Background(), database.CreateUserParams{
+	user, err := cfg.queries.CreateUser(context.Background(), database.CreateUserParams{
 		GithubID: ghUser.GithubID,
 		Username: ghUser.Username,
 		Avatar:   ghUser.AvatarURL,
@@ -107,11 +104,11 @@ func (cfg *apiConfig) handleGitHubCallback(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Create refresh token for user
-	user, err := cfg.queries.GetUserByGitHubID(context.Background(), ghUser.GithubID)
-	if err != nil {
-		respondWithError(w, 400, "Error creating token")
-		return
-	}
+	// user, err := cfg.queries.GetUserByGitHubID(context.Background(), ghUser.GithubID)
+	// if err != nil {
+	// 	respondWithError(w, 400, "Error creating token")
+	// 	return
+	// }
 
 	token, err := auth.MakeJWT(user.ID, cfg.jwtSecret, time.Duration(time.Hour))
 	if err != nil {
@@ -138,5 +135,5 @@ func (cfg *apiConfig) handleGitHubCallback(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	http.Redirect(w, r, "vscode://revision/auth?token="+token+"&refresh="+refreshToken, http.StatusFound)
+	http.Redirect(w, r, "vscode://revision/auth?token="+token+"&refresh="+refreshToken+"&github="+accessToken, http.StatusFound)
 }
