@@ -89,4 +89,6 @@ func (cfg *apiConfig) handleGitHubCallback(w http.ResponseWriter, r *http.Reques
 		http.Error(w, "Failed to create user in database", http.StatusInternalServerError)
 		return
 	}
+
+	http.Redirect(w, r, "vscode://revision/auth?token="+accessToken, http.StatusFound)
 }
