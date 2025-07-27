@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { getNonce } from "./getNonce";
+import { getNonce } from "./utils/getNonce";
 
 export class AuthViewProvider implements vscode.WebviewViewProvider {
   private _view?: vscode.WebviewView;
@@ -24,6 +24,22 @@ export class AuthViewProvider implements vscode.WebviewViewProvider {
     webviewView.webview.onDidReceiveMessage(async (message) => {
       if (message.command === "startOAuth") {
         vscode.env.openExternal(vscode.Uri.parse(authURL));
+      }
+
+      if (message.command === "readyForTokens") {
+        // Send stored tokens to webview
+        const jwt = this.context.globalState.get<string>("jwtToken");
+        const githubToken = this.context.globalState.get<string>("githubToken");
+        webviewView.webview.postMessage({
+          command: "setTokens",
+          jwt,
+          githubToken,
+        });
+      }
+
+      if (message.command === "saveTokens") {
+        this.context.globalState.update("jwtToken", message.jwt);
+        this.context.globalState.update("githubToken", message.githubToken);
       }
     });
   }
@@ -62,5 +78,17 @@ export class AuthViewProvider implements vscode.WebviewViewProvider {
         <script type="module" src="${scriptURI}" nonce="${nonce}"></script>
       </body>
       </html>`;
+  }
+
+  public sendAuthTokens(jwtToken: string, githubToken: string) {
+    // Save tokens to globalState
+    this.context.globalState.update("jwtToken", jwtToken);
+    this.context.globalState.update("githubToken", githubToken);
+
+    this._view?.webview.postMessage({
+      command: "authTokens",
+      jwtToken,
+      githubToken,
+    });
   }
 }

@@ -12,23 +12,20 @@ import { highlightedFunc } from "./highlighted-text";
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
   const commentsProvider = new CommentsViewProvider(context);
-  authProviderInstance = new AuthViewProvider(context);
+  const authProvider = new AuthViewProvider(context);
+
+  authProviderInstance = authProvider;
+
+  const command = "revision.makecomment";
+  const commandHandler = highlightedFunc;
+  const disposable = vscode.commands.registerCommand(command, commandHandler);
 
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider("commentsView", commentsProvider),
-    vscode.window.registerWebviewViewProvider("authView", authProviderInstance),
-    vscode.window.registerUriHandler(new URIHandler())
+    vscode.window.registerWebviewViewProvider("authView", authProvider),
+    vscode.window.registerUriHandler(new URIHandler()),
+    disposable
   );
-  const command = "revision.makecomment";
-
-  const commandHandler = highlightedFunc;
-
-  // The command has been defined in the package.json file
-  // Now provide the implementation of the command with registerCommand
-  // The commandId parameter must match the command field in package.json
-  const disposable = vscode.commands.registerCommand(command, commandHandler);
-
-  context.subscriptions.push(disposable);
 }
 
 export function getAuthProvider(): AuthViewProvider | undefined {
