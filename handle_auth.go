@@ -2,11 +2,15 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"io"
 	"net/http"
 	"net/url"
+	"time"
 
+	"github.com/google/uuid"
+	"github.com/mehkij/revision/internal/auth"
 	"github.com/mehkij/revision/internal/database"
 )
 
@@ -14,6 +18,15 @@ type GithubUser struct {
 	GithubID  int64
 	Username  string
 	AvatarURL string
+}
+
+type User struct {
+	ID           uuid.UUID `json:"id"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+	Email        string    `json:"email"`
+	Token        string    `json:"token"`
+	RefreshToken string    `json:"refresh_token"`
 }
 
 func (cfg *apiConfig) handleGitHubCallback(w http.ResponseWriter, r *http.Request) {
@@ -55,7 +68,7 @@ func (cfg *apiConfig) handleGitHubCallback(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Use token to fetch GitHub user info
-	req, _ := http.NewRequest("GET", "http://api.github.com/user", nil)
+	req, _ := http.NewRequest("GET", "https://api.github.com/user", nil)
 	req.Header.Set("Authorization", "Bearer "+accessToken)
 	req.Header.Set("Accept", "application/json")
 
@@ -84,11 +97,46 @@ func (cfg *apiConfig) handleGitHubCallback(w http.ResponseWriter, r *http.Reques
 		GithubID: ghUser.GithubID,
 		Username: ghUser.Username,
 		Avatar:   ghUser.AvatarURL,
+		GithubToken: sql.NullString{
+			String: accessToken,
+			Valid:  true,
+		},
 	})
 	if err != nil {
 		http.Error(w, "Failed to create user in database", http.StatusInternalServerError)
 		return
 	}
 
-	http.Redirect(w, r, "vscode://revision/auth?token="+accessToken, http.StatusFound)
+	user, err := cfg.queries.GetUser(context.Background(), ghUser.GithubID)
+	if err != nil {
+		respondWithError(w, 400, "Error creating token")
+		return
+	}
+
+	token, err := auth.MakeJWT(user.ID, cfg.jwtSecret, time.Duration(time.Hour))
+	if err != nil {
+		respondWithError(w, 400, "Error creating refresh token")
+		return
+	}
+
+	refreshToken, err := auth.MakeRefreshToken()
+	if err != nil {
+		respondWithError(w, 400, "Error creating refresh token")
+		return
+	}
+
+	_, err = cfg.queries.CreateRefreshToken(r.Context(), database.CreateRefreshTokenParams{
+		Token:     refreshToken,
+		ExpiresAt: time.Now().Add(time.Duration(time.Hour * 1440)),
+		UserID: uuid.NullUUID{
+			UUID:  user.ID,
+			Valid: true,
+		},
+	})
+	if err != nil {
+		respondWithError(w, 400, "Error creating refresh token in database")
+		return
+	}
+
+	http.Redirect(w, r, "vscode://revision/auth?token="+token+"&refresh="+refreshToken, http.StatusFound)
 }

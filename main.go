@@ -13,8 +13,9 @@ import (
 )
 
 type apiConfig struct {
-	queries *database.Queries
-	github  *githubClient
+	queries   *database.Queries
+	github    *githubClient
+	jwtSecret string
 }
 
 type githubClient struct {
@@ -33,6 +34,7 @@ func main() {
 	defer db.Close()
 
 	dbQueries := database.New(db)
+	jwtSecret := os.Getenv("JWT_SECRET")
 
 	clientID := os.Getenv("GITHUB_CLIENT_ID")
 	clientSecret := os.Getenv("GITHUB_CLIENT_SECRET")
@@ -43,8 +45,9 @@ func main() {
 	}
 
 	apiCfg := &apiConfig{
-		queries: dbQueries,
-		github:  githubClient,
+		queries:   dbQueries,
+		github:    githubClient,
+		jwtSecret: jwtSecret,
 	}
 
 	mux := http.NewServeMux()
