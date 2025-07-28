@@ -34,7 +34,7 @@ func (cfg *apiConfig) createCommentHandler(w http.ResponseWriter, r *http.Reques
 		Author       string `json:"author"`
 		FilePath     string `json:"filePath"`
 		GitHubID     int64  `json:"githubId"`
-		Avatar       string `json:"avatar"`
+		Avatar       string `json:"avatar_url"`
 		GithubToken  string `json:"githubToken"`
 	}
 
