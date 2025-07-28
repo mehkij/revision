@@ -88,3 +88,37 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 	)
 	return i, err
 }
+
+const upsertUser = `-- name: UpsertUser :one
+INSERT INTO users (github_id, username, avatar, github_token)
+VALUES ($1, $2, $3, $4)
+ON CONFLICT (github_id) DO UPDATE SET avatar = EXCLUDED.avatar
+RETURNING id, github_id, username, avatar, created_at, updated_at, github_token
+`
+
+type UpsertUserParams struct {
+	GithubID    int64
+	Username    string
+	Avatar      string
+	GithubToken sql.NullString
+}
+
+func (q *Queries) UpsertUser(ctx context.Context, arg UpsertUserParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, upsertUser,
+		arg.GithubID,
+		arg.Username,
+		arg.Avatar,
+		arg.GithubToken,
+	)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.GithubID,
+		&i.Username,
+		&i.Avatar,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GithubToken,
+	)
+	return i, err
+}
