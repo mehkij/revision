@@ -4,7 +4,7 @@ import { getNonce } from "./utils/getNonce";
 export class AuthViewProvider implements vscode.WebviewViewProvider {
   private _view?: vscode.WebviewView;
 
-  constructor(private readonly context: vscode.ExtensionContext) {}
+  constructor(private readonly context: vscode.ExtensionContext) { }
 
   resolveWebviewView(webviewView: vscode.WebviewView) {
     this._view = webviewView;
