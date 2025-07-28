@@ -23,6 +23,11 @@ type Comment struct {
 }
 
 func (cfg *apiConfig) createCommentHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
 	type parameters struct {
 		StartLinePos int    `json:"startLinePos"`
 		StartCharPos int    `json:"startCharPos"`
@@ -45,21 +50,6 @@ func (cfg *apiConfig) createCommentHandler(w http.ResponseWriter, r *http.Reques
 		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("Couldn't decode response body: %s", err))
 		return
 	}
-
-	// user, err := cfg.queries.GetUserByGitHubID(r.Context(), params.GitHubID)
-	// if err != nil {
-	// 	// If user does not exist, create a new user
-	// 	user, err = cfg.queries.CreateUser(r.Context(), database.CreateUserParams{
-	// 		GithubID:    params.GitHubID,
-	// 		Username:    params.Author,
-	// 		Avatar:      params.Avatar,
-	// 		GithubToken: sql.NullString{String: params.GithubToken, Valid: params.GithubToken != ""},
-	// 	})
-	// 	if err != nil {
-	// 		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("Couldn't create user: %s", err))
-	// 		return
-	// 	}
-	// }
 
 	user, err := cfg.queries.UpsertUser(r.Context(), database.UpsertUserParams{
 		GithubID:    params.GitHubID,
