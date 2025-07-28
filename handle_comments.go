@@ -20,7 +20,6 @@ type Comment struct {
 	Repo      string `json:"repo"`
 	Resolved  bool   `json:"resolved"`
 	AvatarURL string `json:"avatar_url"`
-	CreatedAt string `json:"created_at"`
 }
 
 func (cfg *apiConfig) createCommentHandler(w http.ResponseWriter, r *http.Request) {
@@ -94,7 +93,6 @@ func (cfg *apiConfig) createCommentHandler(w http.ResponseWriter, r *http.Reques
 		Repo:      createdComment.Repo,
 		Resolved:  createdComment.Resolved.Bool,
 		AvatarURL: user.Avatar,
-		CreatedAt: dateStr,
 	})
 }
 
@@ -149,12 +147,11 @@ func (cfg *apiConfig) getCommentHandler(w http.ResponseWriter, r *http.Request) 
 			ID:        comment.ID.String(),
 			Author:    comment.Author,
 			Body:      comment.Body,
-			Date:      dateStr,
 			FilePath:  comment.FilePath,
 			Repo:      comment.Repo,
 			Resolved:  comment.Resolved.Bool,
 			AvatarURL: avatarURL,
-			CreatedAt: dateStr,
+			Date:      dateStr,
 		})
 	}
 
