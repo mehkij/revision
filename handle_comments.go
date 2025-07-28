@@ -7,20 +7,20 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/mehkij/revision/internal/database"
 )
 
 type Comment struct {
-	StartLinePos int    `json:"startLinePos"`
-	StartCharPos int    `json:"startCharPos"`
-	EndLinePos   int    `json:"endLinePos"`
-	EndCharPos   int    `json:"endCharPos"`
-	Text         string `json:"text"`
-	Author       string `json:"author"`
-	FilePath     string `json:"filePath"`
-	Repo         string `json:"repo"`
-	CommitHash   string `json:"commitHash"`
-	Resolved     bool   `json:"resolved"`
+	ID        string `json:"id"`
+	Author    string `json:"author"`
+	Body      string `json:"body"`
+	Date      string `json:"date"`
+	FilePath  string `json:"filepath"`
+	Repo      string `json:"repo"`
+	Resolved  bool   `json:"resolved"`
+	AvatarURL string `json:"avatar_url"`
+	CreatedAt string `json:"created_at"`
 }
 
 func (cfg *apiConfig) createCommentHandler(w http.ResponseWriter, r *http.Request) {
@@ -43,7 +43,7 @@ func (cfg *apiConfig) createCommentHandler(w http.ResponseWriter, r *http.Reques
 	params := parameters{}
 	err := decoder.Decode(&params)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("Coudln't decode response body: %s", err))
+		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("Couldn't decode response body: %s", err))
 		return
 	}
 
@@ -57,7 +57,7 @@ func (cfg *apiConfig) createCommentHandler(w http.ResponseWriter, r *http.Reques
 			GithubToken: sql.NullString{String: params.GithubToken, Valid: params.GithubToken != ""},
 		})
 		if err != nil {
-			respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("Coudln't create user: %s", err))
+			respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("Couldn't create user: %s", err))
 			return
 		}
 	}
@@ -75,23 +75,27 @@ func (cfg *apiConfig) createCommentHandler(w http.ResponseWriter, r *http.Reques
 		UserID:     user.ID,
 	})
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("Coudln't decode create comment: %s", err))
+		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("Couldn't create comment: %s", err))
 		return
 	}
 
-	respondWithJSON(w, http.StatusCreated, Comment{
-		StartLinePos: int(createdComment.LineStart),
-		StartCharPos: int(createdComment.LineEnd),
-		EndLinePos:   int(createdComment.LineEnd),
-		EndCharPos:   int(createdComment.CharEnd),
-		Text:         createdComment.Body,
-		Author:       createdComment.Author,
-		FilePath:     createdComment.FilePath,
-		Repo:         createdComment.Repo,
-		CommitHash:   createdComment.CommitHash,
-		Resolved:     createdComment.Resolved.Bool,
-	})
+	// Format the response
+	dateStr := ""
+	if createdComment.CreatedAt.Valid {
+		dateStr = createdComment.CreatedAt.Time.Format("2006-01-02 15:04:05")
+	}
 
+	respondWithJSON(w, http.StatusCreated, Comment{
+		ID:        createdComment.ID.String(),
+		Author:    createdComment.Author,
+		Body:      createdComment.Body,
+		Date:      dateStr,
+		FilePath:  createdComment.FilePath,
+		Repo:      createdComment.Repo,
+		Resolved:  createdComment.Resolved.Bool,
+		AvatarURL: user.Avatar,
+		CreatedAt: dateStr,
+	})
 }
 
 func (cfg *apiConfig) getCommentHandler(w http.ResponseWriter, r *http.Request) {
@@ -106,10 +110,53 @@ func (cfg *apiConfig) getCommentHandler(w http.ResponseWriter, r *http.Request) 
 		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("Error getting comments: %s", err))
 		return
 	}
+
 	if len(comments) == 0 {
 		respondWithJSON(w, http.StatusOK, []Comment{})
 		return
 	}
 
-	respondWithJSON(w, http.StatusOK, comments)
+	// Get unique user IDs to batch fetch users
+	userIDs := make([]uuid.UUID, 0)
+	userIDSet := make(map[uuid.UUID]bool)
+
+	for _, comment := range comments {
+		if !userIDSet[comment.UserID] {
+			userIDs = append(userIDs, comment.UserID)
+			userIDSet[comment.UserID] = true
+		}
+	}
+
+	// Create a map of user ID to avatar URL
+	userAvatars := make(map[uuid.UUID]string)
+	for _, userID := range userIDs {
+		user, err := cfg.queries.GetUserByID(context.Background(), userID)
+		if err == nil {
+			userAvatars[userID] = user.Avatar
+		}
+	}
+
+	var responseComments []Comment
+	for _, comment := range comments {
+		dateStr := ""
+		if comment.CreatedAt.Valid {
+			dateStr = comment.CreatedAt.Time.Format("2006-01-02 15:04:05")
+		}
+
+		avatarURL := userAvatars[comment.UserID]
+
+		responseComments = append(responseComments, Comment{
+			ID:        comment.ID.String(),
+			Author:    comment.Author,
+			Body:      comment.Body,
+			Date:      dateStr,
+			FilePath:  comment.FilePath,
+			Repo:      comment.Repo,
+			Resolved:  comment.Resolved.Bool,
+			AvatarURL: avatarURL,
+			CreatedAt: dateStr,
+		})
+	}
+
+	respondWithJSON(w, http.StatusOK, responseComments)
 }
