@@ -14,3 +14,9 @@ SELECT * FROM users WHERE (github_id=$1);
 
 -- name: GetUserByID :one
 SELECT * FROM users WHERE id=$1;
+
+-- name: UpsertUser :one
+INSERT INTO users (github_id, username, avatar, github_token)
+VALUES ($1, $2, $3, $4)
+ON CONFLICT (github_id) DO UPDATE SET avatar = EXCLUDED.avatar
+RETURNING *;
