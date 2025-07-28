@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/mehkij/revision/internal/auth"
 	"github.com/mehkij/revision/internal/database"
 )
 
@@ -103,17 +102,17 @@ func (cfg *apiConfig) getCommentHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// Authorize user
-	token, err := auth.GetBearerToken(r.Header)
-	if err != nil {
-		respondWithError(w, 500, fmt.Sprintf("Error getting token: %s", err))
-		return
-	}
+	// token, err := auth.GetBearerToken(r.Header)
+	// if err != nil {
+	// 	respondWithError(w, 500, fmt.Sprintf("Error getting token: %s", err))
+	// 	return
+	// }
 
-	_, err = auth.ValidateJWT(token, cfg.jwtSecret)
-	if err != nil {
-		respondWithError(w, 401, "Invalid token")
-		return
-	}
+	// _, err = auth.ValidateJWT(token, cfg.jwtSecret)
+	// if err != nil {
+	// 	respondWithError(w, 401, "Invalid token")
+	// 	return
+	// }
 
 	comments, err := cfg.queries.GetCommentsByRepo(context.Background(), repo)
 	if err != nil {
