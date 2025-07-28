@@ -3,7 +3,7 @@ ALTER TABLE comments
 ADD COLUMN char_start INTEGER NOT NULL;
 
 ALTER TABLE comments
-ADD COLUMN char_end INTEGER NOT NULl;
+ADD COLUMN char_end INTEGER NOT NULL;
 
 -- +goose Down
 ALTER TABLE comments
