@@ -13,7 +13,7 @@ import (
 )
 
 const createComment = `-- name: CreateComment :one
-INSERT INTO comments (id, file_path, commit_hash, line_start, line_end, char_start, char_end, author, body, resolved)
+INSERT INTO comments (id, file_path, commit_hash, repo, line_start, line_end, char_start, char_end, author, body, resolved)
 VALUES (
     gen_random_uuid(),
     $1,
@@ -24,7 +24,8 @@ VALUES (
     $6,
     $7,
     $8,
-    $9
+    $9,
+    $10
 )
 RETURNING id, file_path, repo, commit_hash, line_start, line_end, author, body, created_at, updated_at, resolved, char_start, char_end, user_id
 `
@@ -32,6 +33,7 @@ RETURNING id, file_path, repo, commit_hash, line_start, line_end, author, body, 
 type CreateCommentParams struct {
 	FilePath   string
 	CommitHash string
+	Repo       string
 	LineStart  int32
 	LineEnd    int32
 	CharStart  int32
@@ -45,6 +47,7 @@ func (q *Queries) CreateComment(ctx context.Context, arg CreateCommentParams) (C
 	row := q.db.QueryRowContext(ctx, createComment,
 		arg.FilePath,
 		arg.CommitHash,
+		arg.Repo,
 		arg.LineStart,
 		arg.LineEnd,
 		arg.CharStart,
