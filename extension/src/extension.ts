@@ -5,72 +5,63 @@ import { CommentsViewProvider } from "./CommentsViewProvider";
 import { AuthViewProvider } from "./AuthViewProvider";
 import { URIHandler } from "./URIHandler";
 
-<<<<<<< HEAD
 let authProviderInstance: AuthViewProvider | undefined;
 
 import { highlightedFunc } from "./highlighted-text";
-=======
 import { highlightedObj } from "./highlighted-text";
->>>>>>> 814e7b4 (added hover function over the highlighted text)
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
   const commentsProvider = new CommentsViewProvider(context);
-  const authProvider = new AuthViewProvider(context);
-
-  authProviderInstance = authProvider;
-
-  const command = "revision.makecomment";
-  const commandHandler = highlightedFunc;
-  const disposable = vscode.commands.registerCommand(command, commandHandler);
+  const authProviderInstance = new AuthViewProvider(context);
 
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider("commentsView", commentsProvider),
-    vscode.window.registerWebviewViewProvider("authView", authProvider),
-    vscode.window.registerUriHandler(new URIHandler()),
-    disposable
+    vscode.window.registerWebviewViewProvider("authView", authProviderInstance),
+    vscode.window.registerUriHandler(new URIHandler())
   );
-}
+  const command = "revision.makecomment";
 
-<<<<<<< HEAD
-export function getAuthProvider(): AuthViewProvider | undefined {
-  return authProviderInstance;
-=======
   //const commandHandler = highlightedFunc;
   let hoverRange: vscode.Range;
   let highlightObj: highlightedObj;
 
   const commandHandler = function () {
     const url = "https://revision.duckdns.org/";
-    const axios = require('axios').default;
+    const axios = require("axios").default;
 
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
-      vscode.window.showErrorMessage('Undefined editor');
+      vscode.window.showErrorMessage("Undefined editor");
       return;
     }
 
-    const line_bck_color = 'rgba(98,27,99, 0.92)'
+    const line_bck_color = "rgba(98,27,99, 0.92)";
     const outlineDecoration = vscode.window.createTextEditorDecorationType({
       borderColor: line_bck_color,
-      borderStyle: 'solid',
-      borderWidth: '1px',
-      borderRadius: '0px',
+      borderStyle: "solid",
+      borderWidth: "1px",
+      borderRadius: "0px",
       backgroundColor: line_bck_color,
-      overviewRulerLane: vscode.OverviewRulerLane.Center
+      overviewRulerLane: vscode.OverviewRulerLane.Center,
     });
     let activeRanges: vscode.Range[] = [];
 
     const selection = editor.selection;
     if (selection && !selection.isEmpty) {
-      const selectionRange = new vscode.Range(selection.start.line, selection.start.character, selection.end.line, selection.end.character);
+      const selectionRange = new vscode.Range(
+        selection.start.line,
+        selection.start.character,
+        selection.end.line,
+        selection.end.character
+      );
       const highlighted = editor.document.getText(selectionRange);
       var highlightedText: highlightedObj = {
         startLinePos: selectionRange.start.line,
         startCharPos: selectionRange.start.character,
         endLinePos: selectionRange.end.line,
         endCharPos: selectionRange.end.character,
-        text: highlighted
+        text: highlighted,
       };
 
       highlightObj = highlightedText;
@@ -80,8 +71,8 @@ export function getAuthProvider(): AuthViewProvider | undefined {
       editor.setDecorations(outlineDecoration, activeRanges);
 
       console.log(highlightedText);
-      axios.post(url + '/api/v1/comments',
-        highlightedText)
+      axios
+        .post(url + "/api/v1/comments", highlightedText)
         .then(function (response: any) {
           console.log(response);
         })
@@ -98,14 +89,21 @@ export function getAuthProvider(): AuthViewProvider | undefined {
 
   context.subscriptions.push(disposable);
 
-  vscode.languages.registerHoverProvider({ scheme: 'file' }, {
-    provideHover(document, position, token) {
-      return new vscode.Hover('Placeholder hover text(This is where the comment text will go)', hoverRange);
+  vscode.languages.registerHoverProvider(
+    { scheme: "file" },
+    {
+      provideHover(document, position, token) {
+        return new vscode.Hover(
+          "Placeholder hover text(This is where the comment text will go)",
+          hoverRange
+        );
+      },
     }
-  });
+  );
+}
 
-
->>>>>>> 814e7b4 (added hover function over the highlighted text)
+export function getAuthProvider(): AuthViewProvider | undefined {
+  return authProviderInstance;
 }
 
 // This method is called when your extension is deactivated
