@@ -13,7 +13,7 @@ import (
 )
 
 const createComment = `-- name: CreateComment :one
-INSERT INTO comments (id, file_path, commit_hash, repo, line_start, line_end, char_start, char_end, author, body, resolved)
+INSERT INTO comments (id, file_path, commit_hash, repo, line_start, line_end, char_start, char_end, author, body, resolved, user_id)
 VALUES (
     gen_random_uuid(),
     $1,
@@ -25,7 +25,8 @@ VALUES (
     $7,
     $8,
     $9,
-    $10
+    $10,
+    $11
 )
 RETURNING id, file_path, repo, commit_hash, line_start, line_end, author, body, created_at, updated_at, resolved, char_start, char_end, user_id
 `
@@ -41,6 +42,7 @@ type CreateCommentParams struct {
 	Author     string
 	Body       string
 	Resolved   sql.NullBool
+	UserID     uuid.UUID
 }
 
 func (q *Queries) CreateComment(ctx context.Context, arg CreateCommentParams) (Comment, error) {
@@ -55,6 +57,7 @@ func (q *Queries) CreateComment(ctx context.Context, arg CreateCommentParams) (C
 		arg.Author,
 		arg.Body,
 		arg.Resolved,
+		arg.UserID,
 	)
 	var i Comment
 	err := row.Scan(
