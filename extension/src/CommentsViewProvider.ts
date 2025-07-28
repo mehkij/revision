@@ -4,7 +4,7 @@ import { getNonce } from "./utils/getNonce";
 export class CommentsViewProvider implements vscode.WebviewViewProvider {
   private _view?: vscode.WebviewView;
 
-  constructor(private readonly context: vscode.ExtensionContext) { }
+  constructor(private readonly context: vscode.ExtensionContext) {}
 
   resolveWebviewView(webviewView: vscode.WebviewView) {
     this._view = webviewView;
@@ -20,6 +20,10 @@ export class CommentsViewProvider implements vscode.WebviewViewProvider {
       if (message.command === "addComment") {
         console.log("Add comment:", message.data);
         // Send to Go backend via fetch or WebSocket
+      }
+
+      if (message.command === "error") {
+        vscode.window.showErrorMessage(message.message);
       }
     });
   }

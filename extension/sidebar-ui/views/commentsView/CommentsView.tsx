@@ -16,43 +16,74 @@ type Comment = {
 const repoName = "revision";
 
 function CommentsView() {
-  const [jwtToken, setJwtToken] = useState<string | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  // Separate useEffect for fetching comments when token is available
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    const vscode = window.acquireVsCodeApi();
+    const fetchComments = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-    vscode.postMessage({ command: "requestTokens" });
-
-    window.addEventListener("message", (event) => {
-      const message = event.data;
-      if (message.command === "sendTokens") {
-        setJwtToken(message.jwt);
-
-        axios
-          .get("https://revision.duckdns.org/api/v1/comments", {
+        const response = await axios.get(
+          "https://revision.duckdns.org/api/v1/comments",
+          {
             params: {
               repo: repoName,
             },
-            headers: {
-              Authorization: `Bearer ${jwtToken}`,
-            },
-          })
-          .then(function (res) {
-            setComments(res.data);
-          })
-          .catch((err) => {
-            console.error("Error fetching comments:", err);
-            vscode.postMessage({
-              command: "error",
-              message: "Failed to fetch comments. Please try again later.",
-            });
-          });
+          }
+        );
+
+        setComments(response.data || []);
+      } catch (err) {
+        console.error("Error fetching comments:", err);
+        const errorMessage =
+          "Failed to fetch comments. Please try again later.";
+        setError(errorMessage);
+
+        // Send error to extension
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const vscode = window.acquireVsCodeApi();
+        vscode.postMessage({
+          command: "error",
+          message: errorMessage,
+        });
+      } finally {
+        setLoading(false);
       }
-    });
-  }, [jwtToken]);
+    };
+
+    fetchComments();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-4">
+        <div className="text-white">Loading comments...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center p-4">
+        <div className="text-red-400">{error}</div>
+      </div>
+    );
+  }
+
+  if (comments.length === 0) {
+    return (
+      <div className="flex items-center justify-center p-4">
+        <div className="text-gray-400">
+          No comments found for this repository.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-col">

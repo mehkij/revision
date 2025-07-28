@@ -10,22 +10,7 @@ function AuthView() {
     const vscodeApi = window.acquireVsCodeApi?.();
     if (vscodeApi) {
       setVscode(vscodeApi);
-      vscodeApi.postMessage({ command: "readyForTokens" });
     }
-
-    const listener = (event: MessageEvent) => {
-      const message = event.data;
-      if (message.command === "setTokens") {
-        vscodeApi?.postMessage({
-          command: "saveTokens",
-          jwt: message.jwt,
-          githubToken: message.githubToken,
-        });
-      }
-    };
-
-    window.addEventListener("message", listener);
-    return () => window.removeEventListener("message", listener);
   }, []);
 
   return (

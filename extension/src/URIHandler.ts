@@ -3,26 +3,26 @@ import { getAuthProvider } from "./extension";
 
 export class URIHandler implements vscode.UriHandler {
   handleUri(uri: vscode.Uri): vscode.ProviderResult<void> {
-    if (uri.path === "/auth") {
+    if (uri.path === "/auth/callback") {
       const params = new URLSearchParams(uri.query);
-      const jwt = params.get("token");
       const githubToken = params.get("github");
 
-      if (jwt && githubToken) {
+      if (githubToken) {
         vscode.window.showInformationMessage(
-          `Successfully authenticated with Revision backend.`
+          `Successfully authenticated with GitHub.`
         );
-        vscode.workspace
-          .getConfiguration()
-          .update("revision.accessToken", jwt, true);
 
+        // Store only the GitHub token
         vscode.workspace
           .getConfiguration()
           .update("revision.githubToken", githubToken, true);
 
-        getAuthProvider()?.sendAuthTokens(jwt, githubToken);
+        // Send token to auth provider
+        getAuthProvider()?.sendAuthTokens(githubToken);
       } else {
-        vscode.window.showErrorMessage("JWT missing from auth redirect.");
+        vscode.window.showErrorMessage(
+          "GitHub token missing from auth redirect."
+        );
       }
     }
   }

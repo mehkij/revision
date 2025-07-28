@@ -16,30 +16,16 @@ export class AuthViewProvider implements vscode.WebviewViewProvider {
     webviewView.webview.html = this.getHtml(webviewView.webview);
 
     const clientID = "Ov23liCMiYF5035lKJEQ";
-    const redirectUri = "vscode://revision/auth/callback"; // or your deployed URL
+    const redirectUri = "vscode://revision/auth/callback";
     const authURL = `https://github.com/login/oauth/authorize?client_id=${clientID}&redirect_uri=${encodeURIComponent(
       redirectUri
     )}&scope=repo`;
 
     webviewView.webview.onDidReceiveMessage(async (message) => {
+      console.log("AuthViewProvider received message:", message);
+
       if (message.command === "startOAuth") {
         vscode.env.openExternal(vscode.Uri.parse(authURL));
-      }
-
-      if (message.command === "readyForTokens") {
-        // Send stored tokens to webview
-        const jwt = this.context.globalState.get<string>("jwtToken");
-        const githubToken = this.context.globalState.get<string>("githubToken");
-        webviewView.webview.postMessage({
-          command: "setTokens",
-          jwt,
-          githubToken,
-        });
-      }
-
-      if (message.command === "saveTokens") {
-        this.context.globalState.update("jwtToken", message.jwt);
-        this.context.globalState.update("githubToken", message.githubToken);
       }
     });
   }
@@ -80,14 +66,16 @@ export class AuthViewProvider implements vscode.WebviewViewProvider {
       </html>`;
   }
 
-  public sendAuthTokens(jwtToken: string, githubToken: string) {
-    // Save tokens to globalState
-    this.context.globalState.update("jwtToken", jwtToken);
+  public sendAuthTokens(githubToken: string) {
+    console.log("sendAuthTokens called with:", {
+      githubToken: !!githubToken,
+    });
+
+    // Save token to globalState
     this.context.globalState.update("githubToken", githubToken);
 
     this._view?.webview.postMessage({
       command: "authTokens",
-      jwtToken,
       githubToken,
     });
   }
