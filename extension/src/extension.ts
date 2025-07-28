@@ -9,15 +9,21 @@ let authProviderInstance: AuthViewProvider | undefined;
 
 import { highlightedFunc } from "./highlighted-text";
 import { highlightedObj } from "./highlighted-text";
+import { CreateCommentViewProvider } from "./CreateCommentViewProvider";
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-  const commentsProvider = new CommentsViewProvider(context);
   const authProviderInstance = new AuthViewProvider(context);
+  const commentsProvider = new CommentsViewProvider(context);
+  const createCommentProvider = new CreateCommentViewProvider(context);
 
   context.subscriptions.push(
-    vscode.window.registerWebviewViewProvider("commentsView", commentsProvider),
     vscode.window.registerWebviewViewProvider("authView", authProviderInstance),
+    vscode.window.registerWebviewViewProvider("commentsView", commentsProvider),
+    vscode.window.registerWebviewViewProvider(
+      "createCommentView",
+      createCommentProvider
+    ),
     vscode.window.registerUriHandler(new URIHandler())
   );
   const command = "revision.makecomment";
@@ -107,4 +113,4 @@ export function getAuthProvider(): AuthViewProvider | undefined {
 }
 
 // This method is called when your extension is deactivated
-export function deactivate() { }
+export function deactivate() {}

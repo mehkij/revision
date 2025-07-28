@@ -14,6 +14,7 @@ export default defineConfig({
       input: {
         auth: resolve(__dirname, "views/authView/index.html"),
         comments: resolve(__dirname, "views/commentsView/index.html"),
+        createComment: resolve(__dirname, "views/createCommentView/index.html"),
       },
       output: {
         entryFileNames: `assets/[name]/index.js`,

@@ -25,14 +25,20 @@
       "revisionSidebar": [
         {
           "type": "webview",
+          "id": "authView",
+          "name": "Authenticate",
+          "icon": "media/chat-left.svg"
+        },
+        {
+          "type": "webview",
           "id": "commentsView",
           "name": "Comments",
           "icon": "media/chat-left.svg"
         },
         {
           "type": "webview",
-          "id": "authView",
-          "name": "Authenticate",
+          "id": "createCommentView",
+          "name": "Create Comment",
           "icon": "media/chat-left.svg"
         }
       ]
