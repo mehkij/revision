@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -34,6 +35,9 @@ func (cfg *apiConfig) createCommentHandler(w http.ResponseWriter, r *http.Reques
 		CommitHash   string `json:"commitHash"`
 		Author       string `json:"author"`
 		FilePath     string `json:"filePath"`
+		GitHubID     int64  `json:"githubId"`
+		Avatar       string `json:"avatar"`
+		GithubToken  string `json:"githubToken"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -42,6 +46,21 @@ func (cfg *apiConfig) createCommentHandler(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("Coudln't decode response body: %s", err))
 		return
+	}
+
+	user, err := cfg.queries.GetUserByGitHubID(r.Context(), params.GitHubID)
+	if err != nil {
+		// If user does not exist, create a new user
+		user, err = cfg.queries.CreateUser(r.Context(), database.CreateUserParams{
+			GithubID:    params.GitHubID,
+			Username:    params.Author,
+			Avatar:      params.Avatar,
+			GithubToken: sql.NullString{String: params.GithubToken, Valid: params.GithubToken != ""},
+		})
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("Coudln't create user: %s", err))
+			return
+		}
 	}
 
 	createdComment, err := cfg.queries.CreateComment(r.Context(), database.CreateCommentParams{
@@ -54,6 +73,7 @@ func (cfg *apiConfig) createCommentHandler(w http.ResponseWriter, r *http.Reques
 		CommitHash: params.CommitHash,
 		FilePath:   params.FilePath,
 		Author:     params.Author,
+		UserID:     user.ID,
 	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("Coudln't decode create comment: %s", err))
