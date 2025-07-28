@@ -46,19 +46,30 @@ func (cfg *apiConfig) createCommentHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	user, err := cfg.queries.GetUserByGitHubID(r.Context(), params.GitHubID)
+	// user, err := cfg.queries.GetUserByGitHubID(r.Context(), params.GitHubID)
+	// if err != nil {
+	// 	// If user does not exist, create a new user
+	// 	user, err = cfg.queries.CreateUser(r.Context(), database.CreateUserParams{
+	// 		GithubID:    params.GitHubID,
+	// 		Username:    params.Author,
+	// 		Avatar:      params.Avatar,
+	// 		GithubToken: sql.NullString{String: params.GithubToken, Valid: params.GithubToken != ""},
+	// 	})
+	// 	if err != nil {
+	// 		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("Couldn't create user: %s", err))
+	// 		return
+	// 	}
+	// }
+
+	user, err := cfg.queries.UpsertUser(r.Context(), database.UpsertUserParams{
+		GithubID:    params.GitHubID,
+		Username:    params.Author,
+		Avatar:      params.Avatar,
+		GithubToken: sql.NullString{String: params.GithubToken, Valid: params.GithubToken != ""},
+	})
 	if err != nil {
-		// If user does not exist, create a new user
-		user, err = cfg.queries.CreateUser(r.Context(), database.CreateUserParams{
-			GithubID:    params.GitHubID,
-			Username:    params.Author,
-			Avatar:      params.Avatar,
-			GithubToken: sql.NullString{String: params.GithubToken, Valid: params.GithubToken != ""},
-		})
-		if err != nil {
-			respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("Couldn't create user: %s", err))
-			return
-		}
+		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("Couldn't upsert user: %s", err))
+		return
 	}
 
 	createdComment, err := cfg.queries.CreateComment(r.Context(), database.CreateCommentParams{
