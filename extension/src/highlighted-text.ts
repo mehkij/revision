@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-interface highlightedObj {
+export interface highlightedObj {
     startLinePos: number,
     startCharPos: number,
     endLinePos: number,
@@ -45,7 +45,6 @@ export function highlightedFunc() {
 
         activeRanges.push(selectionRange);
         editor.setDecorations(outlineDecoration, activeRanges);
-
 
         console.log(highlightedText);
         axios.post(url + '/api/v1/comments',
