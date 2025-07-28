@@ -24,3 +24,25 @@ SELECT * FROM comments WHERE user_id=$1;
 
 -- name: GetCommentsByRepo :many
 SELECT * FROM comments WHERE (repo=$1);
+
+-- name: GetCommentsByRepoWithUsers :many
+SELECT 
+    c.id,
+    c.file_path,
+    c.repo,
+    c.commit_hash,
+    c.line_start,
+    c.line_end,
+    c.char_start,
+    c.char_end,
+    c.author,
+    c.body,
+    c.created_at,
+    c.updated_at,
+    c.resolved,
+    c.user_id,
+    u.avatar as avatar_url
+FROM comments c
+LEFT JOIN users u ON c.user_id = u.id
+WHERE c.repo = $1
+ORDER BY c.created_at DESC;

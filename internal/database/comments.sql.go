@@ -147,6 +147,86 @@ func (q *Queries) GetCommentsByRepo(ctx context.Context, repo string) ([]Comment
 	return items, nil
 }
 
+const getCommentsByRepoWithUsers = `-- name: GetCommentsByRepoWithUsers :many
+SELECT 
+    c.id,
+    c.file_path,
+    c.repo,
+    c.commit_hash,
+    c.line_start,
+    c.line_end,
+    c.char_start,
+    c.char_end,
+    c.author,
+    c.body,
+    c.created_at,
+    c.updated_at,
+    c.resolved,
+    c.user_id,
+    u.avatar as avatar_url
+FROM comments c
+LEFT JOIN users u ON c.user_id = u.id
+WHERE c.repo = $1
+ORDER BY c.created_at DESC
+`
+
+type GetCommentsByRepoWithUsersRow struct {
+	ID         uuid.UUID
+	FilePath   string
+	Repo       string
+	CommitHash string
+	LineStart  int32
+	LineEnd    int32
+	CharStart  int32
+	CharEnd    int32
+	Author     string
+	Body       string
+	CreatedAt  sql.NullTime
+	UpdatedAt  sql.NullTime
+	Resolved   sql.NullBool
+	UserID     uuid.UUID
+	AvatarUrl  sql.NullString
+}
+
+func (q *Queries) GetCommentsByRepoWithUsers(ctx context.Context, repo string) ([]GetCommentsByRepoWithUsersRow, error) {
+	rows, err := q.db.QueryContext(ctx, getCommentsByRepoWithUsers, repo)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetCommentsByRepoWithUsersRow
+	for rows.Next() {
+		var i GetCommentsByRepoWithUsersRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.FilePath,
+			&i.Repo,
+			&i.CommitHash,
+			&i.LineStart,
+			&i.LineEnd,
+			&i.CharStart,
+			&i.CharEnd,
+			&i.Author,
+			&i.Body,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Resolved,
+			&i.UserID,
+			&i.AvatarUrl,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getCommentsByUser = `-- name: GetCommentsByUser :many
 SELECT id, file_path, repo, commit_hash, line_start, line_end, author, body, created_at, updated_at, resolved, char_start, char_end, user_id FROM comments WHERE user_id=$1
 `

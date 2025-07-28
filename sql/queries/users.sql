@@ -11,3 +11,6 @@ RETURNING *;
 
 -- name: GetUserByGitHubID :one
 SELECT * FROM users WHERE (github_id=$1);
+
+-- name: GetUserByID :one
+SELECT * FROM users WHERE id=$1;
