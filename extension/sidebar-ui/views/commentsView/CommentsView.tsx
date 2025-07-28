@@ -19,7 +19,6 @@ function CommentsView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Separate useEffect for fetching comments when token is available
   useEffect(() => {
     const fetchComments = async () => {
       try {

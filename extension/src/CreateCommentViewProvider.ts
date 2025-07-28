@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { getNonce } from "./utils/getNonce";
+import axios from "axios";
 
 export class CreateCommentViewProvider implements vscode.WebviewViewProvider {
   private _view?: vscode.WebviewView;
@@ -16,10 +17,45 @@ export class CreateCommentViewProvider implements vscode.WebviewViewProvider {
     webviewView.webview.html = this.getHtml(webviewView.webview);
 
     // Listen to messages from the webview (e.g., to add a comment)
-    webviewView.webview.onDidReceiveMessage((message) => {
+    webviewView.webview.onDidReceiveMessage(async (message) => {
       if (message.command === "addComment") {
-        console.log("Add comment:", message.data);
-        // Send to Go backend via fetch or WebSocket
+        try {
+          const response = await axios.post(
+            "https://revision.duckdns.org/api/v1/comments",
+            message.data,
+            {
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          // If the response status is not 2xx, throw an error
+          if (response.status < 200 || response.status >= 300) {
+            throw new Error(`Server responded with status ${response.status}`);
+          }
+
+          // Notify the webview that the comment was added successfully
+          webviewView.webview.postMessage({ command: "commentAdded" });
+        } catch (err: unknown) {
+          let errorMessage = "Unknown error";
+
+          if (err instanceof Error) {
+            errorMessage = err.message;
+          } else if (typeof err === "string") {
+            errorMessage = err;
+          }
+
+          console.error("Error forwarding comment:", errorMessage);
+          vscode.window.showErrorMessage(
+            "Failed to add comment: " + errorMessage
+          );
+
+          webviewView.webview.postMessage({
+            command: "error",
+            message: errorMessage,
+          });
+        }
       }
 
       if (message.command === "error") {
