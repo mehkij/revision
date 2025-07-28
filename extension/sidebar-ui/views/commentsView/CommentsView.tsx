@@ -9,7 +9,6 @@ type Comment = {
   date: string;
   filepath: string;
   repo: string;
-  created_at?: string;
   resolved: boolean;
 };
 
