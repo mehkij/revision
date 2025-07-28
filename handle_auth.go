@@ -101,31 +101,5 @@ func (cfg *apiConfig) handleGitHubCallback(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// Create refresh token for user
-	// token, err := auth.MakeJWT(user.ID, cfg.jwtSecret, time.Duration(time.Hour))
-	// if err != nil {
-	// 	respondWithError(w, 400, "Error creating refresh token")
-	// 	return
-	// }
-
-	// refreshToken, err := auth.MakeRefreshToken()
-	// if err != nil {
-	// 	respondWithError(w, 400, "Error creating refresh token")
-	// 	return
-	// }
-
-	// _, err = cfg.queries.CreateRefreshToken(r.Context(), database.CreateRefreshTokenParams{
-	// 	Token:     refreshToken,
-	// 	ExpiresAt: time.Now().Add(time.Duration(time.Hour * 1440)),
-	// 	UserID: uuid.NullUUID{
-	// 		UUID:  user.ID,
-	// 		Valid: true,
-	// 	},
-	// })
-	// if err != nil {
-	// 	respondWithError(w, 400, "Error creating refresh token in database")
-	// 	return
-	// }
-
 	http.Redirect(w, r, "vscode://revision/auth?"+"&github="+accessToken, http.StatusFound)
 }

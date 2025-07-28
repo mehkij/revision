@@ -101,19 +101,6 @@ func (cfg *apiConfig) getCommentHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Authorize user
-	// token, err := auth.GetBearerToken(r.Header)
-	// if err != nil {
-	// 	respondWithError(w, 500, fmt.Sprintf("Error getting token: %s", err))
-	// 	return
-	// }
-
-	// _, err = auth.ValidateJWT(token, cfg.jwtSecret)
-	// if err != nil {
-	// 	respondWithError(w, 401, "Invalid token")
-	// 	return
-	// }
-
 	comments, err := cfg.queries.GetCommentsByRepo(context.Background(), repo)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("Error getting comments: %s", err))
