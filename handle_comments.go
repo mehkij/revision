@@ -16,6 +16,11 @@ type Comment struct {
 	EndLinePos   int    `json:"endLinePos"`
 	EndCharPos   int    `json:"endCharPos"`
 	Text         string `json:"text"`
+	Author       string `json:"author"`
+	FilePath     string `json:"filePath"`
+	Repo         string `json:"repo"`
+	CommitHash   string `json:"commitHash"`
+	Resolved     bool   `json:"resolved"`
 }
 
 func (cfg *apiConfig) createCommentHandler(w http.ResponseWriter, r *http.Request) {
@@ -25,6 +30,10 @@ func (cfg *apiConfig) createCommentHandler(w http.ResponseWriter, r *http.Reques
 		EndLinePos   int    `json:"endLinePos"`
 		EndCharPos   int    `json:"endCharPos"`
 		Text         string `json:"text"`
+		Repo         string `json:"repo"`
+		CommitHash   string `json:"commitHash"`
+		Author       string `json:"author"`
+		FilePath     string `json:"filePath"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -36,11 +45,15 @@ func (cfg *apiConfig) createCommentHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	createdComment, err := cfg.queries.CreateComment(r.Context(), database.CreateCommentParams{
-		LineStart: int32(params.StartLinePos),
-		LineEnd:   int32(params.EndLinePos),
-		CharStart: int32(params.StartCharPos),
-		CharEnd:   int32(params.EndCharPos),
-		Body:      params.Text,
+		LineStart:  int32(params.StartLinePos),
+		LineEnd:    int32(params.EndLinePos),
+		CharStart:  int32(params.StartCharPos),
+		CharEnd:    int32(params.EndCharPos),
+		Body:       params.Text,
+		Repo:       params.Repo,
+		CommitHash: params.CommitHash,
+		FilePath:   params.FilePath,
+		Author:     params.Author,
 	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("Coudln't decode create comment: %s", err))
@@ -53,6 +66,11 @@ func (cfg *apiConfig) createCommentHandler(w http.ResponseWriter, r *http.Reques
 		EndLinePos:   int(createdComment.LineEnd),
 		EndCharPos:   int(createdComment.CharEnd),
 		Text:         createdComment.Body,
+		Author:       createdComment.Author,
+		FilePath:     createdComment.FilePath,
+		Repo:         createdComment.Repo,
+		CommitHash:   createdComment.CommitHash,
+		Resolved:     createdComment.Resolved.Bool,
 	})
 
 }

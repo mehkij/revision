@@ -1,5 +1,5 @@
 -- name: CreateComment :one
-INSERT INTO comments (id, file_path, commit_hash, line_start, line_end, char_start, char_end, author, body, resolved)
+INSERT INTO comments (id, file_path, commit_hash, repo, line_start, line_end, char_start, char_end, author, body, resolved)
 VALUES (
     gen_random_uuid(),
     $1,
@@ -10,7 +10,8 @@ VALUES (
     $6,
     $7,
     $8,
-    $9
+    $9,
+    $10
 )
 RETURNING *;
 
